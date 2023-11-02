@@ -82,7 +82,9 @@ def registrarLibro():
     newLibro["autor"] = autor
     newLibro["anioedicion"] = anioedicion
     newLibro["ejemplares"] = ejemplares
+    newLibro["prestados"] = 0
     libros.append(newLibro)
+    print(libros)
     print("El libro fue registrado exitosamente...\n")
     tab = input("Presione enter para continuar...\n")
     #print(libros)
@@ -95,13 +97,19 @@ def listarLibros():
     for i in libros:
         valores = i.values()
         listaLibros.append(valores)
-    print(tabulate(listaLibros, headers=["Codigo", "Titulo", "Autor", "Edición", "Inventario"]))
-    tab = input("Presione enter para continuar...\n")
+    print(tabulate(listaLibros, headers=["Codigo", "Titulo", "Autor", "Edición", "Ejemplares", "Prestados"]))
+    tab = input("\nPresione enter para continuar...\n")
 
 #Función para buscar un libro y retornarlo
 def buscarLibroID():
     print("\nBusqueda de libro en el sistema por su identificación:")
     id = int(input("Ingrese el indentificador del libro que desea buscar: "))
+    for i in libros:
+        if (i["codigo"]) == id:
+            return i
+    return None
+
+def buscarLibroporID(id):
     for i in libros:
         if (i["codigo"]) == id:
             return i
@@ -113,8 +121,8 @@ def imprimirLibro(datosLibro):
     print("Datos del libro buscado\n")
     valores = datosLibro.values()
     libro.append(valores)
-    print(tabulate(libro, headers=["Codigo", "Titulo", "Autor", "Edición", "Inventario"]))
-    tab = input("Presione enter para continuar...\n")
+    print(tabulate(libro, headers=["Codigo", "Titulo", "Autor", "Edición", "Ejemplares", "Prestados"]))
+    tab = input("\nPresione enter para continuar...\n")
 
 #Función para actualizar datos de un libro
 def actualizarLibro():
@@ -155,7 +163,7 @@ def menuSocios():
         elif (opcion == "d"):
             break
         else:
-            print("No es una opción correcta, intenta de nuevo...\n")
+            print("\nNo es una opción correcta, intenta de nuevo...\n")
             continue
 
 #Función para registrar un socio
@@ -170,9 +178,10 @@ def registrarSocio():
     newSocio["nombre"] = nombre
     newSocio["direccion"] = direccion
     newSocio["telefono"] = telefono
+    newSocio["librosenprestamo"] = 0
     socios.append(newSocio)
     print("El socio fue registrado exitosamente...")
-    tab = input("Presione enter para continuar...\n")
+    tab = input("\nPresione enter para continuar...\n")
 
 #Función para listar los socios registrados
 def listarSocios():
@@ -181,8 +190,8 @@ def listarSocios():
     for i in socios:
         valores = i.values()
         listaSocios.append(valores)
-    print(tabulate(listaSocios, headers=["Identificación", "Nombre", "Dirección", "Telefono"]))
-    tab = input("Presione enter para continuar...\n")
+    print(tabulate(listaSocios, headers=["Identificación", "Nombre", "Dirección", "Telefono", "Libros en prestamo"]))
+    tab = input("\nPresione enter para continuar...\n")
 
 #Función para buscar un socio y retornarlo
 def buscarSocioCedula():
@@ -196,7 +205,7 @@ def buscarSocioCedula():
 def buscarSocioCedulaParametro(cedula):
     print("\nBusqueda de socio en el sistema por su identificación:")
     for i in socios:
-        if (i["cedula"]) == id:
+        if (i["cedula"]) == cedula:
             return i
     return None
 
@@ -205,8 +214,8 @@ def imprimirSocio(datosSocio):
     print("Datos del socio buscado\n")
     valores = datosSocio.values()
     socio.append(valores)
-    print(tabulate(socio, headers=["Identificación", "Nombre", "Dirección", "Telefono"]))
-    tab = input("Presione enter para continuar...\n")
+    print(tabulate(socio, headers=["Identificación", "Nombre", "Dirección", "Telefono", "Libros en prestamo"]))
+    tab = input("\nPresione enter para continuar...\n")
 
 #Función para actualizar datos de un socio
 def actualizarSocio():
@@ -225,7 +234,7 @@ def generarPrestamo():
     print(socio)
     if (socio != None ):
         IDlibro = int(input("Ingrese el codigo del libro a prestar: "))   
-        libro = buscarLibroID(IDlibro)
+        libro = buscarLibroporID(IDlibro)
         if (libro != None):
             prestamo["cedula"] = cedulaUsuario
             prestamo["codigo"] = IDlibro
@@ -233,8 +242,26 @@ def generarPrestamo():
             prestamo["fecha_prestamo"] = ahora
             prestamo["fecha_devolucion"] = ahora + timedelta(days=10)
             prestamos.append(prestamo)
+            actualizarPrestamoSocio(cedulaUsuario)
+            actualizarPrestamosLibro(IDlibro)
+            print("El prestamos se realizo satisfactoriamente...")
+            tab = input("\nPresione enter para continuar...\n")
         else:
             print("El codigo del libro no coincide con ninguno registrado.")
+            tab = input("\nPresione enter para continuar...\n")
     else:
             print("El identificador del socio no pertenece a ninguno registrado.")
+            tab = input("\nPresione enter para continuar...\n")
+
+def actualizarPrestamoSocio(cedula):
+    for i in socios:
+        if (i["cedula"] == cedula):
+            i["librosenprestamo"] += 1
+
+
+def actualizarPrestamosLibro(IDlibro):
+    for i in libros:
+        if (i["codigo"] == IDlibro):
+            i["ejemplares"] -= 1
+            i["prestados"] += 1
     
