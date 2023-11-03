@@ -209,6 +209,12 @@ def buscarSocioCedulaParametro(cedula):
             return i
     return None
 
+def buscarSocioCedula(cedula):
+    for i in socios:
+        if (i["cedula"]) == cedula:
+            return i
+    return None
+
 def imprimirSocio(datosSocio):
     socio = []
     print("Datos del socio buscado\n")
@@ -225,33 +231,43 @@ def actualizarSocio():
 def eliminarSocio(cedula):
     pass
 
-#Funciones para prestamos de libros por socios - Maximo 3 libros por socio
+#Funciones para prestamos de libros por socios - Maximo 3 libros por socio y validando existencia de ejemplares
 def generarPrestamo():
     prestamo = {}
     print("Modulo de prestamos de libros")
     cedulaUsuario = input("Ingresa la identificación del usuario: ")
-    socio = buscarSocioCedulaParametro(cedulaUsuario)
-    print(socio)
-    if (socio != None ):
-        IDlibro = int(input("Ingrese el codigo del libro a prestar: "))   
-        libro = buscarLibroporID(IDlibro)
-        if (libro != None):
-            prestamo["cedula"] = cedulaUsuario
-            prestamo["codigo"] = IDlibro
-            ahora = datetime.now()
-            prestamo["fecha_prestamo"] = ahora
-            prestamo["fecha_devolucion"] = ahora + timedelta(days=10)
-            prestamos.append(prestamo)
-            actualizarPrestamoSocio(cedulaUsuario)
-            actualizarPrestamosLibro(IDlibro)
-            print("El prestamos se realizo satisfactoriamente...")
-            tab = input("\nPresione enter para continuar...\n")
+    socio = buscarSocioCedula(cedulaUsuario)
+    validacionSocio = validarPrestamoSocio(socio)
+    if (validacionSocio):
+        if (socio != None ):
+            IDlibro = int(input("Ingrese el codigo del libro a prestar: "))   
+            libro = buscarLibroporID(IDlibro)
+            validarLibro = validarPrestamoLibro(libro)
+            if (validarLibro):
+                if (libro != None):
+                    prestamo["cedula"] = cedulaUsuario
+                    prestamo["codigo"] = IDlibro
+                    ahora = datetime.now()
+                    prestamo["fecha_prestamo"] = ahora
+                    prestamo["fecha_devolucion"] = ahora + timedelta(days=10)
+                    prestamos.append(prestamo)
+                    actualizarPrestamoSocio(cedulaUsuario)
+                    actualizarPrestamosLibro(IDlibro)
+                    print("El prestamos se realizo satisfactoriamente...")
+                    tab = input("\nPresione enter para continuar...\n")
+                else:
+                    print("El codigo del libro no coincide con ninguno registrado.")
+                    tab = input("\nPresione enter para continuar...\n")
+            else:
+                print("El libro no cuenta con ejemplares para prestamos.")
+                tab = input("\nPresione enter para continuar...\n")
         else:
-            print("El codigo del libro no coincide con ninguno registrado.")
-            tab = input("\nPresione enter para continuar...\n")
-    else:
             print("El identificador del socio no pertenece a ninguno registrado.")
             tab = input("\nPresione enter para continuar...\n")
+    else:
+        print("El socio alcanzo el numero maximo de prestamos.")
+        tab = input("\nPresione enter para continuar...\n")
+
 
 def actualizarPrestamoSocio(cedula):
     for i in socios:
@@ -265,3 +281,18 @@ def actualizarPrestamosLibro(IDlibro):
             i["ejemplares"] -= 1
             i["prestados"] += 1
     
+#Validar prestamo, un usuario no puede tener mas de 3 libros y no puede tener sanciones
+def validarPrestamoSocio(socio):
+    if (socio == None):
+        return False
+    elif (socio["librosenprestamo"] < 3):
+        return True
+    else:
+        return False
+
+#Validar prestamos, un libro debe contar con ejemplares disponibles par ser prestados
+def validarPrestamoLibro(libro):
+    if (libro["ejemplares"] > 0):
+        return True
+    else:
+        return False
